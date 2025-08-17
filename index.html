@@ -308,6 +308,9 @@ function doLogin(){
 const VKEY='resetAppDataV1';
 const today = () => (new Date()).toISOString().slice(0,10);
 const freqToDays = {"Quotidien":1,"Hebdo":7,"2×/semaine":3,"Mensuel":30,"Trimestriel":90,"Semestriel":180};
+function esc(str){
+  return String(str).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+}
 
 const defaultData = {
   logs: [],
@@ -430,8 +433,18 @@ document.getElementById('themeBtn').onclick = ()=>{ state.theme = state.theme===
 
 // Dashboard
 function renderDashboard(){
-  const list=document.getElementById('quickScripts'); list.innerHTML="";
-  state.scripts.forEach(s=>{ const d=document.createElement('div'); d.className='item'; d.innerHTML=`<span class="copy" onclick="navigator.clipboard.writeText(\`${s}\`)">${s}</span>`; list.appendChild(d); });
+  const list=document.getElementById('quickScripts');
+  list.innerHTML="";
+  state.scripts.forEach(s=>{
+    const d=document.createElement('div');
+    d.className='item';
+    const span=document.createElement('span');
+    span.className='copy';
+    span.textContent=s;
+    span.onclick=()=>navigator.clipboard.writeText(s);
+    d.appendChild(span);
+    list.appendChild(d);
+  });
   renderKPIs();
 }
 function renderKPIs(){
@@ -449,7 +462,19 @@ function renderKPIs(){
 function startPause(){ let s=60; const el=document.getElementById('pauseStatus'); el.textContent="Pause 60s…"; const it=setInterval(()=>{ s--; el.textContent=`Pause ${s}s… Respire 4–4.`; if(s<=0){clearInterval(it); el.textContent="Pause terminée.";} },1000); }
 function updateStatus(txt){ document.getElementById('pauseStatus').textContent=txt; }
 const securePhrases=["Je m’arrête. Je suis tendu. Je reviens à :10.","Je gère. Tu peux dormir tranquille.","Pause. Je reviens à :15."];
-(function(){ const w=document.getElementById('securePhrases'); securePhrases.forEach(s=>{ const d=document.createElement('div'); d.className='item'; d.innerHTML=`<span class="copy" onclick="navigator.clipboard.writeText(\`${s}\`)">${s}</span>`; w.appendChild(d); }); })();
+(function(){
+  const w=document.getElementById('securePhrases');
+  securePhrases.forEach(s=>{
+    const d=document.createElement('div');
+    d.className='item';
+    const span=document.createElement('span');
+    span.className='copy';
+    span.textContent=s;
+    span.onclick=()=>navigator.clipboard.writeText(s);
+    d.appendChild(span);
+    w.appendChild(d);
+  });
+})();
 function saveRepair(){
   const e={date:today(), type:"3R",
     fait:document.getElementById('repFait').value.trim(),
@@ -473,11 +498,11 @@ function renderLogs(){
   state.logs.filter(l=> new Date(l.date).getTime()>=since).forEach(l=>{
     const text=JSON.stringify(l).toLowerCase(); if(q && !text.includes(q)) return;
     const d=document.createElement('div'); d.className='item';
-    let html=`<div class="muted small">${l.date}</div>`;
+    let html=`<div class="muted small">${esc(l.date)}</div>`;
     if(l.type==="3R"){
-      html+=`<b>Réparation 3R</b><br>Fait: ${l.fait||"-"}<br>Impact: ${l.impact||"-"}<br>Responsabilité: ${l.resp||"-"}<br>Réparation: ${l.rep||"-"}`;
+      html+=`<b>Réparation 3R</b><br>Fait: ${esc(l.fait||"-" )}<br>Impact: ${esc(l.impact||"-" )}<br>Responsabilité: ${esc(l.resp||"-" )}<br>Réparation: ${esc(l.rep||"-" )}`;
     } else {
-      html+=`<b>Déclencheur:</b> ${l.trig||"-"} | <b>Émotion:</b> ${l.emo}/10<br><b>J’ai fait/dit:</b> ${l.did||"-"}<br><b>Alternative:</b> ${l.alt||"-"}`;
+      html+=`<b>Déclencheur:</b> ${esc(l.trig||"-" )} | <b>Émotion:</b> ${esc(l.emo)}/10<br><b>J’ai fait/dit:</b> ${esc(l.did||"-" )}<br><b>Alternative:</b> ${esc(l.alt||"-" )}`;
     }
     d.innerHTML=html; list.appendChild(d);
   });
@@ -492,7 +517,7 @@ function renderHabits(){
     const it=document.createElement('div'); it.className='item';
     const checked=!!(h.done && h.done[t]);
     it.innerHTML=`<div class="row" style="align-items:center">
-      <label style="flex:2"><input type="checkbox" ${checked?'checked':''} onchange="toggleHabit('${h.id}')"> ${h.name}</label>
+      <label style="flex:2"><input type="checkbox" ${checked?'checked':''} onchange="toggleHabit('${h.id}')"> ${esc(h.name)}</label>
       <button class="btn" onclick="removeHabit('${h.id}')">Supprimer</button></div>`;
     w.appendChild(it);
   });
@@ -500,7 +525,20 @@ function renderHabits(){
 function toggleHabit(id){ const t=today(); const h=state.habits.find(x=>x.id===id); if(!h.done) h.done={}; if(h.done[t]) delete h.done[t]; else h.done[t]=true; save(); renderHabits(); renderHabitStats(); }
 function addHabit(){ const v=document.getElementById('habitNew').value.trim(); if(!v) return; state.habits.push({id:'hab'+Math.random().toString(36).slice(2,8), name:v, done:{}, active:true}); document.getElementById('habitNew').value=""; save(); renderHabits(); }
 function removeHabit(id){ if(!confirm("Supprimer ?")) return; state.habits=state.habits.filter(h=>h.id!==id); save(); renderHabits(); }
-function renderHabitStats(){ const t=today(); const total=state.habits.filter(h=>h.active).length||1; const done=state.habits.filter(h=>h.active && h.done && h.done[t]).length; const wrap=document.getElementById('habitStats'); wrap.innerHTML=""; const d=document.createElement('div'); d.className='item'; d.innerHTML=`<b>Aujourd’hui :</b> ${done}/${total} non‑négociables faits.`; wrap.appendChild(d); }
+function renderHabitStats(){
+  const t=today();
+  const total=state.habits.filter(h=>h.active).length||1;
+  const done=state.habits.filter(h=>h.active && h.done && h.done[t]).length;
+  const wrap=document.getElementById('habitStats');
+  wrap.innerHTML="";
+  const d=document.createElement('div');
+  d.className='item';
+  const b=document.createElement('b');
+  b.textContent="Aujourd’hui :";
+  d.appendChild(b);
+  d.appendChild(document.createTextNode(` ${done}/${total} non‑négociables faits.`));
+  wrap.appendChild(d);
+}
 
 // Tasks
 function daysBetween(d1,d2){ const a=new Date(d1), b=new Date(d2); return Math.floor((b-a)/86400000); }
@@ -508,14 +546,14 @@ function dueClass(last,freq){ if(!last) return 'due-2'; const need=freqToDays[fr
 function renderTasks(){
   const wrap=document.getElementById('tasksWrap'); wrap.innerHTML="";
   Object.keys(state.tasks).forEach(room=>{
-    const card=document.createElement('div'); card.className='item'; card.innerHTML=`<h3>${room}</h3>`;
+    const card=document.createElement('div'); card.className='item'; card.innerHTML=`<h3>${esc(room)}</h3>`;
     const tbl=document.createElement('table'); tbl.className='table';
     tbl.innerHTML=`<tr><th>Type</th><th>Tâche</th><th>Fréquence</th><th>Dernier fait</th><th>Action</th></tr>`;
     ["VISIBLES","INVISIBLES"].forEach(sec=>{
-      const srow=document.createElement('tr'); const td=document.createElement('td'); td.colSpan=5; td.innerHTML=`<div class="section">${sec}</div>`; srow.appendChild(td); tbl.appendChild(srow);
+      const srow=document.createElement('tr'); const td=document.createElement('td'); td.colSpan=5; td.innerHTML=`<div class="section">${esc(sec)}</div>`; srow.appendChild(td); tbl.appendChild(srow);
       state.tasks[room][sec].forEach((t,i)=>{
         const tr=document.createElement('tr'); tr.className=dueClass(t.last,t.freq);
-        tr.innerHTML=`<td>${sec.toLowerCase()}</td><td>${t.name}</td><td>${t.freq}</td><td>${t.last||"-"}</td><td><button class="btn ok" onclick="markDone('${room}','${sec}',${i})">Marquer fait</button></td>`;
+        tr.innerHTML=`<td>${sec.toLowerCase()}</td><td>${esc(t.name)}</td><td>${esc(t.freq)}</td><td>${esc(t.last||"-")}</td><td><button class="btn ok" onclick="markDone('${room}','${sec}',${i})">Marquer fait</button></td>`;
         tbl.appendChild(tr);
       });
     });
@@ -530,7 +568,20 @@ function haltAdvice(){
   const out=[]; if(H) out.push("Snack + eau avant de parler."); if(A) out.push("3R puis reformule sans « mais »."); if(L) out.push("Message à un ami / câlin."); if(T) out.push("Sieste 20 min / douche. Pas de discussion tant que la fatigue n’est pas traitée.");
   document.getElementById('haltOut').textContent = out.length? out.join(' ') : "RAS. Tu peux parler maintenant, en restant sur les faits.";
 }
-function renderHaltScripts(){ const wrap=document.getElementById('haltScripts'); wrap.innerHTML=""; ["Je m’arrête. Je reviens à :10.","Je gère, dors tranquille.","Je t’écoute, dis-moi."].forEach(s=>{ const d=document.createElement('div'); d.className='item'; d.innerHTML=`<span class="copy" onclick="navigator.clipboard.writeText(\`${s}\`)">${s}</span>`; wrap.appendChild(d); }); }
+function renderHaltScripts(){
+  const wrap=document.getElementById('haltScripts');
+  wrap.innerHTML="";
+  ["Je m’arrête. Je reviens à :10.","Je gère, dors tranquille.","Je t’écoute, dis-moi."].forEach(s=>{
+    const d=document.createElement('div');
+    d.className='item';
+    const span=document.createElement('span');
+    span.className='copy';
+    span.textContent=s;
+    span.onclick=()=>navigator.clipboard.writeText(s);
+    d.appendChild(span);
+    wrap.appendChild(d);
+  });
+}
 
 // Données (export/import/quick edit)
 function downloadData(){ const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='reset_data_'+today()+'.json'; a.click(); state.lastBackupPrompt = today(); save(); }
@@ -542,13 +593,14 @@ function renderQuickEdit(){
   const ul=document.createElement('div'); ul.className='list';
   state.scripts.forEach((s,i)=>{
     const it=document.createElement('div'); it.className='row';
-    it.innerHTML=`<input type="text" value="${s.replace(/"/g,'&quot;')}" onchange="editScript(${i}, this.value)">
-                  <button class="btn danger" onclick="delScript(${i})">Supprimer</button>`;
-    ul.appendChild(it);
+    const input=document.createElement('input'); input.type='text'; input.value=s; input.onchange=()=>editScript(i, input.value);
+    const btn=document.createElement('button'); btn.className='btn danger'; btn.textContent='Supprimer'; btn.onclick=()=>delScript(i);
+    it.appendChild(input); it.appendChild(btn); ul.appendChild(it);
   });
   const add=document.createElement('div'); add.className='row';
-  add.innerHTML = `<input id="scriptNew" type="text" placeholder="Nouvelle phrase…">
-                   <button class="btn primary" onclick="addScript()">Ajouter</button>`;
+  const inputNew=document.createElement('input'); inputNew.id='scriptNew'; inputNew.type='text'; inputNew.placeholder='Nouvelle phrase…';
+  const btnAdd=document.createElement('button'); btnAdd.className='btn primary'; btnAdd.textContent='Ajouter'; btnAdd.onclick=addScript;
+  add.appendChild(inputNew); add.appendChild(btnAdd);
   sc.appendChild(ul); sc.appendChild(add);
   wrap.appendChild(sc);
 }
@@ -571,15 +623,16 @@ function renderContract(){
   const v=document.getElementById('contractView');
   if(!state.contract){ v.textContent="Aucun contrat enregistré."; return; }
   const c = state.contract;
-  v.innerHTML = `<div class="muted small">${c.date} — signé par ${c.name}</div>
-    <b>Engagements quotidiens</b><br>${(c.daily||'-').replace(/\n/g,'<br>')}<br><br>
-    <b>Limites & respect</b><br>${(c.limits||'-').replace(/\n/g,'<br>')}<br><br>
-    <b>Réparations</b><br>${(c.repair||'-').replace(/\n/g,'<br>')}`;
+  const escBR = s => esc(s||'-').replace(/\n/g,'<br>');
+  v.innerHTML = `<div class="muted small">${esc(c.date)} — signé par ${esc(c.name)}</div>
+    <b>Engagements quotidiens</b><br>${escBR(c.daily)}<br><br>
+    <b>Limites & respect</b><br>${escBR(c.limits)}<br><br>
+    <b>Réparations</b><br>${escBR(c.repair)}`;
 }
 function updateContractBadge(){
   const b=document.getElementById('contractBadge');
   if(state.contract){
-    b.innerHTML = `Contrat actif — <span class="muted small">${state.contract.date}</span>`;
+    b.innerHTML = `Contrat actif — <span class="muted small">${esc(state.contract.date)}</span>`;
   } else {
     b.textContent = "Aucun contrat défini.";
   }

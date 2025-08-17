@@ -58,10 +58,13 @@
   });
 })();
 
+function esc(str){
+  return String(str).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+}
 function row(str, cls=''){ const d=document.createElement('div'); d.innerHTML = str; if(cls) d.className=cls; return d; }
-function ok(s){ return `<span class="ok">✅ ${s}</span>` }
-function bad(s){ return `<span class="bad">❌ ${s}</span>` }
-function warn(s){ return `<span class="warn">⚠️ ${s}</span>` }
+function ok(s){ return `<span class="ok">✅ ${esc(s)}</span>` }
+function bad(s){ return `<span class="bad">❌ ${esc(s)}</span>` }
+function warn(s){ return `<span class="warn">⚠️ ${esc(s)}</span>` }
 
 document.getElementById('ua').textContent = navigator.userAgent;
 (async()=>{
