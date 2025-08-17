@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RESET — Anti-schémas & Suivi</title>
+<style>
+  :root{
+    --bg:#0f1216; --card:#171b21; --muted:#8da2b3; --text:#e9f0f7;
+    --accent:#4da3ff; --accent-2:#7ae3b0; --danger:#ff6b6b; --warn:#ffd166;
+    --ok:#8be28b; --line:#243040; --chip:#223042;
+  }
+  *{box-sizing:border-box}
+  body{ margin:0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    background:linear-gradient(180deg,#0d1115,#0f1216 120px); color:var(--text); }
+  header{ position:sticky; top:0; z-index:10; background:rgba(15,18,22,.8); backdrop-filter: blur(10px); border-bottom:1px solid var(--line); }
+  .bar{ max-width:1100px; margin:0 auto; display:flex; align-items:center; gap:10px; padding:10px 16px; }
+  .logo{font-weight:800; letter-spacing:.5px; font-size:18px}
+  .nav{display:flex; gap:8px; flex-wrap:wrap; margin-left:auto}
+  .nav button{ background:transparent; color:var(--muted); border:1px solid var(--line); padding:8px 10px; border-radius:10px; cursor:pointer; font-weight:600; }
+  .nav button.active{ color:var(--text); border-color:var(--accent); background:rgba(77,163,255,.12)}
+  main{max-width:1100px; margin:16px auto; padding:12px}
+  .grid{display:grid; grid-template-columns:1fr; gap:12px}
+  @media (min-width:900px){ .grid{grid-template-columns:1fr 1fr} }
+  .card{ background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px; }
+  h2{font-size:18px; margin:4px 0 10px 0}
+  h3{font-size:16px; margin:10px 0 8px 0; color:#cbe0ff}
+  .muted{color:var(--muted); font-size:13px}
+  label{display:block; font-weight:600; margin:10px 0 6px}
+  input[type=text], input[type=date], input[type=number], textarea, select{
+    width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--line); background:#0c1015; color:var(--text);
+  }
+  textarea{min-height:80px; resize:vertical}
+  .row{display:flex; gap:8px; flex-wrap:wrap}
+  .row > *{flex:1}
+  .btn{ display:inline-flex; align-items:center; gap:8px; padding:10px 12px; border-radius:10px; border:1px solid var(--line);
+    background:#131820; color:var(--text); font-weight:700; cursor:pointer; }
+  .btn.primary{border-color:var(--accent); background:linear-gradient(180deg,#183454, #12263d)}
+  .btn.ok{border-color:#2d6f3c; background:linear-gradient(180deg,#1d3f29,#142a1b)}
+  .btn.warn{border-color:#7a5c12; background:linear-gradient(180deg,#3c2d08,#2a1e05)}
+  .btn.danger{border-color:#7a1f1f; background:linear-gradient(180deg,#3a0f0f,#260909)}
+  .pill{display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; background:var(--chip); color:#b8d4f3; font-size:12px; border:1px solid var(--line)}
+  .list{display:grid; gap:10px}
+  .item{padding:10px; border:1px solid var(--line); border-radius:12px; background:#131820}
+  .kpi{display:flex; gap:10px; flex-wrap:wrap; margin:4px 0 8px}
+  .kpi .box{flex:1; min-width:140px; background:#12171e; border:1px solid var(--line); padding:10px; border-radius:12px}
+  .kpi .big{font-size:22px; font-weight:900}
+  .tag{padding:3px 8px; border-radius:999px; background:#1a2431; color:#9ec7ff; border:1px solid var(--line); font-size:12px}
+  .ok{color:var(--ok)} .warn{color:var(--warn)} .danger{color:var(--danger)}
+  .small{font-size:12px}
+  .table{width:100%; border-collapse:collapse}
+  .table th, .table td{border:1px solid var(--line); padding:10px; text-align:left; vertical-align:top}
+  .table th{background:#12202f}
+  .due-0{border-left:4px solid var(--ok)}
+  .due-1{border-left:4px solid var(--warn)}
+  .due-2{border-left:4px solid var(--danger)}
+  .section{padding:6px 10px; border-radius:8px; background:#0e1520; border:1px solid var(--line); margin:8px 0; font-weight:800; letter-spacing:.5px; color:#bcd8ff}
+  .copy{cursor:pointer; border-bottom:1px dashed #7aa8ff}
+  .right{display:flex; gap:8px; justify-content:flex-end}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <div class="logo">RESET — Ismaël</div>
+    <div class="nav" id="nav"></div>
+  </div>
+</header>
+
+<main>
+  <section id="Dashboard" class="view">
+    <div class="grid">
+      <div class="card">
+        <h2>Tableau de bord</h2>
+        <div class="kpi">
+          <div class="box">
+            <div class="muted small">Habitudes cochées aujourd’hui</div>
+            <div class="big" id="kpiStreak">0</div>
+          </div>
+          <div class="box">
+            <div class="muted small">Entrées de journal (30 j)</div>
+            <div class="big" id="kpiLogs">0</div>
+          </div>
+          <div class="box">
+            <div class="muted small">Tâches invisibles faites (30 j)</div>
+            <div class="big" id="kpiInvisible">0</div>
+          </div>
+        </div>
+        <div class="row">
+          <button class="btn primary" onclick="showView('3R')">Lancer le 3R</button>
+          <button class="btn" onclick="showView('Journal')">Note rapide</button>
+          <button class="btn" onclick="showView('Habitudes')">Habitudes</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Scripts rapides</h2>
+        <div class="list" id="quickScripts"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="3R" class="view hidden">
+    <div class="grid">
+      <div class="card">
+        <h2>3R — Stopper → Sécuriser → Réparer</h2>
+        <div class="section">1) Stopper</div>
+        <div class="row">
+          <button class="btn danger" onclick="startPause()">Pause 60s</button>
+          <button class="btn" onclick="updateStatus('Inspire 4s / expire 4s × 6')">Resp 4–4</button>
+          <button class="btn" onclick="updateStatus('Verre d’eau / 30 pas')">Eau / 30 pas</button>
+        </div>
+        <div class="muted" id="pauseStatus">Prêt.</div>
+
+        <div class="section">2) Sécuriser (choisis une phrase)</div>
+        <div class="list" id="securePhrases"></div>
+
+        <div class="section">3) Réparer (4 lignes)</div>
+        <div class="row"><input id="repFait" type="text" placeholder="Fait : j’ai…"></div>
+        <div class="row"><input id="repImpact" type="text" placeholder="Impact : ça t’a…"></div>
+        <div class="row"><input id="repResp" type="text" placeholder="Responsabilité : c’est pour moi."></div>
+        <div class="row"><input id="repRep" type="text" placeholder="Réparation : je propose…"></div>
+        <div class="right"><button class="btn ok" onclick="saveRepair()">Enregistrer + Journal</button></div>
+      </div>
+
+      <div class="card">
+        <h2>Pack urgence</h2>
+        <div class="list">
+          <div class="item"><b>Animal (nuit)</b><br>« Je gère, dors tranquille. » → friandise dedans, refermer, réessayer 2 min plus tard.</div>
+          <div class="item"><b>Tension</b><br>« Pause. Je reviens à :15. » puis écouter sans couper.</div>
+          <div class="item"><b>HALT</b> → Hungry / Angry / Lonely / Tired : traiter avant de parler.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="Journal" class="view hidden">
+    <div class="grid">
+      <div class="card">
+        <h2>Journal rapide</h2>
+        <div class="row">
+          <div><label>Déclencheur</label><input id="jTrig" type="text" placeholder="chien, critique…"></div>
+          <div><label>Émotion (0–10)</label><input id="jEmo" type="number" min="0" max="10" value="5"></div>
+        </div>
+        <label>Ce que j’ai fait / dit</label><textarea id="jDid"></textarea>
+        <label>Alternative la prochaine fois</label><textarea id="jAlt"></textarea>
+        <div class="right"><button class="btn ok" onclick="saveLog()">Enregistrer</button></div>
+      </div>
+
+      <div class="card">
+        <h2>Historique</h2>
+        <div class="row">
+          <select id="filterDays" onchange="renderLogs()">
+            <option value="7">7 j</option>
+            <option value="30" selected>30 j</option>
+            <option value="90">90 j</option>
+            <option value="all">Tout</option>
+          </select>
+          <input id="searchLog" type="text" placeholder="Rechercher…" oninput="renderLogs()">
+        </div>
+        <div class="list" id="logList"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="Habitudes" class="view hidden">
+    <div class="grid">
+      <div class="card">
+        <h2>Habitudes non‑négociables</h2>
+        <div id="habitList" class="list"></div>
+        <div class="row">
+          <input id="habitNew" type="text" placeholder="Ajouter une habitude…">
+          <button class="btn primary" onclick="addHabit()">Ajouter</button>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Progression</h2>
+        <div id="habitStats" class="list"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="Taches" class="view hidden">
+    <div class="card">
+      <h2>Tâches par pièce</h2>
+      <div id="tasksWrap"></div>
+    </div>
+  </section>
+
+  <section id="HALT" class="view hidden">
+    <div class="grid">
+      <div class="card">
+        <h2>HALT</h2>
+        <div class="row">
+          <label><input type="checkbox" id="hHungry"> Hungry</label>
+          <label><input type="checkbox" id="hAngry"> Angry</label>
+          <label><input type="checkbox" id="hLonely"> Lonely</label>
+          <label><input type="checkbox" id="hTired"> Tired</label>
+        </div>
+        <div class="spacer"></div>
+        <button class="btn primary" onclick="haltAdvice()">Conseil</button>
+        <div class="spacer"></div>
+        <div id="haltOut" class="item"></div>
+      </div>
+      <div class="card">
+        <h2>Scripts utiles</h2>
+        <div class="list" id="haltScripts"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="Donnees" class="view hidden">
+    <div class="grid">
+      <div class="card">
+        <h2>Données</h2>
+        <div class="row">
+          <button class="btn" onclick="downloadData()">Exporter (JSON)</button>
+          <label class="btn">Importer JSON <input type="file" accept="application/json" style="display:none" onchange="importData(event)"></label>
+          <button class="btn danger" onclick="if(confirm('Réinitialiser ?')){localStorage.removeItem('resetAppDataV1'); location.reload();}">Réinit</button>
+        </div>
+        <div class="muted small">Tout est local (aucun envoi).</div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+const VKEY='resetAppDataV1';
+const today = () => (new Date()).toISOString().slice(0,10);
+const freqToDays = {"Quotidien":1,"Hebdo":7,"2×/semaine":3,"Mensuel":30,"Trimestriel":90,"Semestriel":180};
+const defaultData = {
+  logs: [],
+  habits: [
+    { id:'hab1', name:"Ne pas réveiller Cass pour le chien (je gère)", done:{}, active:true },
+    { id:'hab2', name:"1 tâche invisible", done:{}, active:true },
+    { id:'hab3', name:"Check-in 5 min (État, Besoin, Merci)", done:{}, active:true },
+    { id:'hab4', name:"HALT avant discussion", done:{}, active:true }
+  ],
+  tasks: {
+    "Cuisine": {
+      "VISIBLES":[
+        {name:"Vaisselle / lave-vaisselle", freq:"Quotidien", last:null},
+        {name:"Essuyer plans de travail", freq:"Quotidien", last:null},
+        {name:"Nettoyer plaque de cuisson", freq:"Quotidien", last:null},
+        {name:"Vider poubelle + nouveau sac", freq:"Quotidien", last:null},
+        {name:"Balayer / laver le sol", freq:"2×/semaine", last:null}
+      ],
+      "INVISIBLES":[
+        {name:"Intérieur micro-ondes", freq:"Hebdo", last:null},
+        {name:"Intérieur du four", freq:"Mensuel", last:null},
+        {name:"Hotte (extérieur + filtre)", freq:"Mensuel", last:null},
+        {name:"Tiroirs couverts/ustensiles", freq:"Trimestriel", last:null},
+        {name:"Intérieur des placards", freq:"Trimestriel", last:null},
+        {name:"Frigo + congélateur", freq:"Mensuel", last:null},
+        {name:"Poignées & interrupteurs", freq:"Hebdo", last:null},
+        {name:"Dessus meubles & frigo", freq:"Mensuel", last:null}
+      ]
+    },
+    "Salon": {
+      "VISIBLES":[
+        {name:"Ranger ce qui traîne", freq:"Quotidien", last:null},
+        {name:"Aspirateur", freq:"2×/semaine", last:null},
+        {name:"Laver le sol (si besoin)", freq:"Hebdo", last:null},
+        {name:"Épousseter table & meubles", freq:"Hebdo", last:null},
+        {name:"Plier plaids / coussins", freq:"Quotidien", last:null}
+      ],
+      "INVISIBLES":[
+        {name:"Intérieur tiroirs / rangements", freq:"Trimestriel", last:null},
+        {name:"Derrière TV & appareils", freq:"Mensuel", last:null},
+        {name:"Vitres et miroirs", freq:"Mensuel", last:null},
+        {name:"Poignées & interrupteurs", freq:"Hebdo", last:null},
+        {name:"Plinthes", freq:"Mensuel", last:null},
+        {name:"Aspirer derrière meubles", freq:"Mensuel", last:null},
+        {name:"Lampes / abat-jour", freq:"Mensuel", last:null}
+      ]
+    },
+    "Chambre": {
+      "VISIBLES":[
+        {name:"Faire le lit", freq:"Quotidien", last:null},
+        {name:"Ranger vêtements", freq:"Quotidien", last:null},
+        {name:"Aspirateur", freq:"Hebdo", last:null},
+        {name:"Épousseter chevets & commodes", freq:"Hebdo", last:null}
+      ],
+      "INVISIBLES":[
+        {name:"Tiroirs (chevet, commode)", freq:"Trimestriel", last:null},
+        {name:"Sous le lit & derrière meubles", freq:"Mensuel", last:null},
+        {name:"Vitres", freq:"Mensuel", last:null},
+        {name:"Poignées & interrupteurs", freq:"Hebdo", last:null},
+        {name:"Rideaux / voilages", freq:"Semestriel", last:null},
+        {name:"Plinthes", freq:"Mensuel", last:null}
+      ]
+    },
+    "Salle de bain (WC)": {
+      "VISIBLES":[
+        {name:"Vasque & plan", freq:"Quotidien", last:null},
+        {name:"Miroir", freq:"Hebdo", last:null},
+        {name:"Douche/baignoire", freq:"Hebdo", last:null},
+        {name:"Sol", freq:"Hebdo", last:null},
+        {name:"Poubelle", freq:"Quotidien", last:null}
+      ],
+      "INVISIBLES":[
+        {name:"Placards & tiroirs (intérieur)", freq:"Trimestriel", last:null},
+        {name:"Pommeau de douche (détartrer)", freq:"Mensuel", last:null},
+        {name:"Rideau/paroi de douche", freq:"Mensuel", last:null},
+        {name:"Joints carrelage", freq:"Mensuel", last:null},
+        {name:"Poignées & interrupteurs", freq:"Hebdo", last:null},
+        {name:"Panier à linge", freq:"Mensuel", last:null},
+        {name:"Derrière les WC", freq:"Mensuel", last:null}
+      ]
+    }
+  },
+  scripts:[
+    "Je m’arrête. Je suis tendu. Je reviens à :10.",
+    "Je gère. Tu peux dormir tranquille.",
+    "Pause. Je reviens à :15.",
+    "Je t’écoute. Dis-moi.",
+    "J’ai dérapé. C’est pour moi. Je répare maintenant."
+  ]
+};
+
+let state = JSON.parse(localStorage.getItem(VKEY) || 'null') || defaultData;
+function save(){ localStorage.setItem(VKEY, JSON.stringify(state)); renderKPIs(); }
+function showView(id){
+  document.querySelectorAll('.view').forEach(v=>v.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
+  [...document.querySelectorAll('.nav button')].find(b=>b.textContent===id).classList.add('active');
+  if(id==='Journal') renderLogs();
+  if(id==='Habitudes'){ renderHabits(); renderHabitStats(); }
+  if(id==='Taches') renderTasks();
+  if(id==='Dashboard') renderDashboard();
+  if(id==='HALT') renderHaltScripts();
+}
+const views=["Dashboard","3R","Journal","Habitudes","Taches","HALT","Donnees"];
+const nav=document.getElementById('nav');
+views.forEach(v=>{ const b=document.createElement('button'); b.textContent=v; b.onclick=()=>showView(v); nav.appendChild(b); });
+
+function renderDashboard(){
+  const list=document.getElementById('quickScripts'); list.innerHTML="";
+  state.scripts.forEach(s=>{ const d=document.createElement('div'); d.className='item'; d.innerHTML=`<span class="copy" onclick="navigator.clipboard.writeText(\`${s}\`)">${s}</span>`; list.appendChild(d); });
+}
+function renderKPIs(){
+  const t = today();
+  document.getElementById('kpiStreak').textContent = String(state.habits.filter(h=>h.done[t]).length);
+  const since = Date.now()-30*86400000;
+  document.getElementById('kpiLogs').textContent = String(state.logs.filter(l=>new Date(l.date).getTime()>=since).length);
+  let c=0; Object.values(state.tasks).forEach(room=>{
+    room["INVISIBLES"].forEach(tk=>{ if(tk.last && new Date(tk.last).getTime()>=since) c++; });
+  });
+  document.getElementById('kpiInvisible').textContent=String(c);
+}
+
+// 3R
+function startPause(){
+  let s=60; const el=document.getElementById('pauseStatus');
+  el.textContent="Pause 60s…";
+  const it=setInterval(()=>{ s--; el.textContent=`Pause ${s}s… Respire 4–4.`; if(s<=0){clearInterval(it); el.textContent="Pause terminée.";} },1000);
+}
+function updateStatus(txt){ document.getElementById('pauseStatus').textContent=txt; }
+const securePhrases=["Je m’arrête. Je suis tendu. Je reviens à :10.","Je gère. Tu peux dormir tranquille.","Pause. Je reviens à :15."];
+(function(){ const w=document.getElementById('securePhrases'); securePhrases.forEach(s=>{ const d=document.createElement('div'); d.className='item'; d.innerHTML=`<span class="copy" onclick="navigator.clipboard.writeText(\`${s}\`)">${s}</span>`; w.appendChild(d); }); })();
+function saveRepair(){
+  const e={date:today(), type:"3R",
+    fait:document.getElementById('repFait').value.trim(),
+    impact:document.getElementById('repImpact').value.trim(),
+    resp:document.getElementById('repResp').value.trim(),
+    rep:document.getElementById('repRep').value.trim()
+  };
+  if(e.fait||e.impact||e.resp||e.rep){ state.logs.unshift(e); save(); alert("Ajouté au journal."); }
+}
+
+// Journal
+function saveLog(){
+  const l={date:today(), trig:document.getElementById('jTrig').value.trim(), emo:+document.getElementById('jEmo').value||0, did:document.getElementById('jDid').value.trim(), alt:document.getElementById('jAlt').value.trim()};
+  if(!l.trig && !l.did && !l.alt){ alert("Écris au moins une info."); return; }
+  state.logs.unshift(l); save(); renderLogs();
+}
+function renderLogs(){
+  const list=document.getElementById('logList'); list.innerHTML="";
+  const q=(document.getElementById('searchLog')?.value||"").toLowerCase(); const fd=document.getElementById('filterDays')?.value||"30";
+  const since = fd==="all" ? 0 : Date.now()-(+fd)*86400000;
+  state.logs.filter(l=> new Date(l.date).getTime()>=since).forEach(l=>{
+    const text=JSON.stringify(l).toLowerCase(); if(q && !text.includes(q)) return;
+    const d=document.createElement('div'); d.className='item';
+    let html=`<div class="muted small">${l.date}</div>`;
+    if(l.type==="3R"){
+      html+=`<b>Réparation 3R</b><br>Fait: ${l.fait||"-"}<br>Impact: ${l.impact||"-"}<br>Responsabilité: ${l.resp||"-"}<br>Réparation: ${l.rep||"-"}`;
+    } else {
+      html+=`<b>Déclencheur:</b> ${l.trig||"-"} | <b>Émotion:</b> ${l.emo}/10<br><b>J’ai fait/dit:</b> ${l.did||"-"}<br><b>Alternative:</b> ${l.alt||"-"}`;
+    }
+    d.innerHTML=html; list.appendChild(d);
+  });
+}
+
+// Habitudes
+function renderHabits(){
+  const w=document.getElementById('habitList'); w.innerHTML="";
+  const t=today();
+  state.habits.forEach(h=>{
+    if(!h.active) return;
+    const it=document.createElement('div'); it.className='item';
+    const checked=!!h.done[t];
+    it.innerHTML=`<div class="row" style="align-items:center">
+      <label style="flex:2"><input type="checkbox" ${checked?'checked':''} onchange="toggleHabit('${h.id}')"> ${h.name}</label>
+      <button class="btn" onclick="removeHabit('${h.id}')">Supprimer</button></div>`;
+    w.appendChild(it);
+  });
+}
+function toggleHabit(id){ const t=today(); const h=state.habits.find(x=>x.id===id); if(!h.done) h.done={}; if(h.done[t]) delete h.done[t]; else h.done[t]=true; save(); renderHabits(); renderHabitStats(); }
+function addHabit(){ const v=document.getElementById('habitNew').value.trim(); if(!v) return; state.habits.push({id:'hab'+Math.random().toString(36).slice(2,8), name:v, done:{}, active:true}); document.getElementById('habitNew').value=""; save(); renderHabits(); }
+function removeHabit(id){ if(!confirm("Supprimer ?")) return; state.habits=state.habits.filter(h=>h.id!==id); save(); renderHabits(); }
+function renderHabitStats(){ const t=today(); const total=state.habits.filter(h=>h.active).length||1; const done=state.habits.filter(h=>h.active && h.done[t]).length; const wrap=document.getElementById('habitStats'); wrap.innerHTML=""; const d=document.createElement('div'); d.className='item'; d.innerHTML=`<b>Aujourd’hui :</b> ${done}/${total} non‑négociables faits.`; wrap.appendChild(d); }
+
+// Tasks
+function daysBetween(d1,d2){ const a=new Date(d1), b=new Date(d2); return Math.floor((b-a)/86400000); }
+function dueClass(last,freq){ if(!last) return 'due-2'; const need=freqToDays[freq]||30; const ago=daysBetween(last,today()); if(ago<=need*0.8) return 'due-0'; if(ago<=need) return 'due-1'; return 'due-2'; }
+function renderTasks(){
+  const wrap=document.getElementById('tasksWrap'); wrap.innerHTML="";
+  Object.keys(state.tasks).forEach(room=>{
+    const card=document.createElement('div'); card.className='item'; card.innerHTML=`<h3>${room}</h3>`;
+    const tbl=document.createElement('table'); tbl.className='table';
+    tbl.innerHTML=`<tr><th>Type</th><th>Tâche</th><th>Fréquence</th><th>Dernier fait</th><th>Action</th></tr>`;
+    ["VISIBLES","INVISIBLES"].forEach(sec=>{
+      const srow=document.createElement('tr'); const td=document.createElement('td'); td.colSpan=5; td.innerHTML=`<div class="section">${sec}</div>`; srow.appendChild(td); tbl.appendChild(srow);
+      state.tasks[room][sec].forEach((t,i)=>{
+        const tr=document.createElement('tr'); tr.className=dueClass(t.last,t.freq);
+        tr.innerHTML=`<td>${sec.toLowerCase()}</td><td>${t.name}</td><td>${t.freq}</td><td>${t.last||"-"}</td><td><button class="btn ok" onclick="markDone('${room}','${sec}',${i})">Marquer fait</button></td>`;
+        tbl.appendChild(tr);
+      });
+    });
+    card.appendChild(tbl); wrap.appendChild(card);
+  });
+}
+function markDone(room,sec,idx){ state.tasks[room][sec][idx].last=today(); save(); renderTasks(); }
+
+// HALT
+function haltAdvice(){
+  const H=document.getElementById('hHungry').checked, A=document.getElementById('hAngry').checked, L=document.getElementById('hLonely').checked, T=document.getElementById('hTired').checked;
+  const out=[]; if(H) out.push("Snack + eau avant de parler."); if(A) out.push("3R puis reformule sans « mais »."); if(L) out.push("Envoi un message à un ami / demande un câlin."); if(T) out.push("Sieste 20 min / douche. Pas de discussion tant que T non traité.");
+  document.getElementById('haltOut').textContent = out.length? out.join(' ') : "RAS. Tu peux parler maintenant, en restant sur les faits.";
+}
+function renderHaltScripts(){ const wrap=document.getElementById('haltScripts'); wrap.innerHTML=""; ["Je m’arrête. Je reviens à :10.","Je gère, dors tranquille.","Je t’écoute, dis-moi."].forEach(s=>{ const d=document.createElement('div'); d.className='item'; d.innerHTML=`<span class="copy" onclick="navigator.clipboard.writeText(\`${s}\`)">${s}</span>`; wrap.appendChild(d); }); }
+
+// Data
+function downloadData(){ const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='reset_data_'+today()+'.json'; a.click(); }
+function importData(ev){ const f=ev.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ try{ state=JSON.parse(r.result); save(); alert('Import ok'); location.reload(); }catch(e){ alert('Fichier invalide'); } }; r.readAsText(f); }
+
+// Init
+document.addEventListener('DOMContentLoaded', ()=>{
+  views.forEach(v=>{}); showView('Dashboard'); renderDashboard(); renderKPIs();
+});
+</script>
+</body>
+</html>
