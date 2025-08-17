@@ -1,4 +1,4 @@
-const CACHE = 'reset-cache-v1';
+const CACHE = 'reset-cache-login-v1';
 const ASSETS = [
   './',
   './index.html',
