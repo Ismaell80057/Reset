@@ -25,13 +25,20 @@
     <input id="lu" type="text" placeholder="Ismael">
     <label for="lp">Mot de passe</label>
     <input id="lp" type="password" placeholder="Mot de passe">
-    <div class="right"><button class="btn ok" id="loginBtn">Se connecter</button></div>
+    <div class="right"><button type="button" class="btn ok" id="loginBtn">Se connecter</button></div>
     <div id="lockMsg" class="muted small"></div>
   </div>
 </div>
 
 <main id="app" class="hidden">
-  <!-- contenu principal rendu côté client -->
+  <section id="dashboard" class="view hidden"><h2>Dashboard</h2></section>
+  <section id="r3" class="view hidden"><h2>3R</h2></section>
+  <section id="journal" class="view hidden"><h2>Journal</h2></section>
+  <section id="habits" class="view hidden"><h2>Habitudes</h2></section>
+  <section id="tasks" class="view hidden"><h2>Tâches</h2></section>
+  <section id="contract" class="view hidden"><h2>Contrat</h2></section>
+  <section id="halt" class="view hidden"><h2>HALT</h2></section>
+  <section id="data" class="view hidden"><h2>Données</h2></section>
 </main>
 
 <script src="main.js" defer></script>

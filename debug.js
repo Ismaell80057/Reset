@@ -11,6 +11,8 @@
     };
   });
 })();
+window.addEventListener('error',e=>console.error('Erreur script:',e.message));
+window.addEventListener('unhandledrejection',e=>console.error('Rejet non géré:',e.reason));
 function esc(str){return String(str).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));}
 function set(elId,status,msg){const el=document.getElementById(elId);el.textContent=msg;el.className=status;}
 
@@ -50,10 +52,23 @@ async function resetSW(){
       const keys=await caches.keys();
       await Promise.all(keys.map(k=>caches.delete(k)));
     }
+    console.log('Service worker et caches réinitialisés');
     alert('OK. Recharge maintenant la page principale.');
-  }catch(e){alert('Erreur lors du reset: '+e.message);}
+  }catch(e){
+    console.error('Erreur lors du reset SW',e);
+    alert('Erreur lors du reset: '+e.message);
+  }
 }
-function clearLS(){Object.keys(localStorage).filter(k=>k.toLowerCase().includes('reset')).forEach(k=>localStorage.removeItem(k));alert('LocalStorage RESET vidé.');}
+function clearLS(){
+  try{
+    Object.keys(localStorage).filter(k=>k.toLowerCase().includes('reset')).forEach(k=>localStorage.removeItem(k));
+    console.log('LocalStorage RESET vidé.');
+    alert('LocalStorage RESET vidé.');
+  }catch(e){
+    console.error('Erreur clearLS',e);
+    alert('Erreur lors du vidage du LocalStorage.');
+  }
+}
 async function testLoginFlow(){const okLogin=typeof doLogin==='function'||typeof window.doLogin==='function';return okLogin?['ok','méthode login présente (manuel)']:['warn','méthode login non trouvée (ouvrir index.html)'];}
 async function testHALT(){try{const r=await fetch('index.html');const tx=await r.text();const hasHALT=tx.includes('HALT')&&(tx.includes('hHungry')||tx.includes('HALT</h2>'));return hasHALT?['ok','HALT présent dans index.html']:['bad','HALT introuvable'];}catch(e){return ['bad','lecture index.html impossible'];}}
 async function testExportImport(){try{const blob=new Blob([JSON.stringify({test:true})],{type:'application/json'});return ['ok','Export JSON possible (simulé)'];}catch(e){return ['bad','Blob JSON non supporté'];}}
