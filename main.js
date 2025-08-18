@@ -40,6 +40,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   });
   applyTheme();
   if('serviceWorker' in navigator){
-    navigator.serviceWorker.register('./sw.js').catch(console.error);
+    navigator.serviceWorker.register('./sw.js?v=full3').catch(console.error);
   }
 });
