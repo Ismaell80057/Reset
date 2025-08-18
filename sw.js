@@ -1,4 +1,4 @@
-const CACHE = 'reset-cache-v4';
+const CACHE = 'reset-cache-v5';
 const ASSETS = [
   './',
   './index.html',
@@ -10,7 +10,11 @@ const ASSETS = [
 ];
 
 self.addEventListener('install', event => {
-  event.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
+  event.waitUntil(
+    caches.open(CACHE)
+      .then(c => c.addAll(ASSETS))
+      .then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener('activate', event => {
@@ -25,15 +29,13 @@ self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
   const url = new URL(event.request.url);
   if (url.origin !== location.origin) return;
-  if (ASSETS.includes(url.pathname) || event.request.mode === 'navigate') {
-    event.respondWith(
-      caches.match(event.request).then(cached =>
-        cached || fetch(event.request).then(resp => {
-          const copy = resp.clone();
-          caches.open(CACHE).then(c => c.put(event.request, copy));
-          return resp;
-        }).catch(() => caches.match('./index.html'))
-      )
-    );
-  }
+  event.respondWith(
+    caches.match(event.request).then(cached =>
+      cached || fetch(event.request).then(resp => {
+        const copy = resp.clone();
+        caches.open(CACHE).then(c => c.put(event.request, copy));
+        return resp;
+      }).catch(() => caches.match('./index.html'))
+    )
+  );
 });
