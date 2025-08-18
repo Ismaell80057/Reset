@@ -92,7 +92,7 @@
     <input id="lu" type="text" placeholder="Ismael">
     <label>Mot de passe</label>
     <input id="lp" type="password" placeholder="Mot de passe">
-    <div class="right"><button class="btn ok" onclick="doLogin()">Se connecter</button></div>
+    <div class="right"><button class="btn ok" id="loginBtn">Se connecter</button></div>
     <div id="lockMsg" class="muted small"></div>
   </div>
 </div>
@@ -101,27 +101,7 @@
   <!-- … (toutes les sections Dashboard, 3R, Journal, Habitudes, Tâches, Contrat, HALT, Données — identiques à ta version stable) … -->
 </main>
 
-<script>
-// ====== Login simple ======
-function doLogin(){
-  const u=document.getElementById('lu').value.trim();
-  const p=document.getElementById('lp').value;
-  if(u==='Ismael' && p==='Bymemu48.'){
-    document.getElementById('login').style.display='none';
-    document.getElementById('app').classList.remove('hidden');
-    applyTheme(); showView('Dashboard'); renderDashboard();
-    window.scrollTo({top:0, behavior:'auto'});
-  } else {
-    document.getElementById('lockMsg').textContent='Identifiants incorrects.';
-  }
-}
-
-// ====== App state & toute la logique (identique à ta version stable) ======
-// (Garde ton code JS existant ici – c’est celui qui fonctionnait)
-</script>
+<script src="main.js" defer></script>
 <script src="console-overlay.js" defer></script>
-<script>
-if('serviceWorker' in navigator){ navigator.serviceWorker.register('./sw.js?v=full3').catch(console.error); }
-</script>
 </body>
 </html>
