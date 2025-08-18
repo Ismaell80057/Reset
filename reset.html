@@ -1,25 +1,30 @@
 <!doctype html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8">
-  <title>Reset SW</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Reset SW</title>
 </head>
 <body>
-  <h1>Reset service worker & caches…</h1>
-  <script>
-  (async () => {
+<h1>Reset service worker & caches…</h1>
+<script>
+(async () => {
+  try {
     if ('serviceWorker' in navigator) {
       const regs = await navigator.serviceWorker.getRegistrations();
-      for (const r of regs) { await r.unregister(); }
+      await Promise.all(regs.map(r => r.unregister()));
     }
-    if (window.caches) {
+    if ('caches' in window) {
       const keys = await caches.keys();
-      for (const k of keys) { await caches.delete(k); }
+      await Promise.all(keys.map(k => caches.delete(k)));
     }
     const p = document.createElement('p');
     p.textContent = 'OK. Recharge maintenant la page principale.';
     document.body.appendChild(p);
-  })();
-  </script>
+  } catch (e) {
+    alert('Erreur lors du reset: ' + e.message);
+  }
+})();
+</script>
 </body>
 </html>
