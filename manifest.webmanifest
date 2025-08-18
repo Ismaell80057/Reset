@@ -1,11 +1,11 @@
 {
   "name": "RESET — Ismaël",
   "short_name": "RESET",
-  "start_url": "./",
+  "start_url": "/Reset/",
   "display": "standalone",
   "background_color": "#0f1216",
   "theme_color": "#0f1216",
-  "scope": "./",
+  "scope": "/Reset/",
   "description": "Outil RESET offline",
   "icons": [
     { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },

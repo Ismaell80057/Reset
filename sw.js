@@ -1,9 +1,16 @@
-const CACHE = 'reset-cache-v5';
+// Simple offline cache with versioned assets
+const CACHE = 'CACHE_V1';
 const ASSETS = [
   './',
   './index.html',
   './debug.html',
   './reset.html',
+  './style.css',
+  './debug.css',
+  './main.js',
+  './debug.js',
+  './reset.js',
+  './console-overlay.js',
   './manifest.webmanifest',
   './icon-192.png',
   './icon-512.png'

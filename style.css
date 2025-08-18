@@ -1,0 +1,32 @@
+:root{
+  --bg:#0f1216; --card:#171b21; --muted:#8da2b3; --text:#e9f0f7;
+  --accent:#4da3ff; --danger:#ff6b6b; --warn:#ffd166; --ok:#8be28b; --line:#243040; --chip:#223042;
+}
+[data-theme="light"]{
+  --bg:#f7fbff; --card:#ffffff; --muted:#5b6b78; --text:#0b1a2b;
+  --accent:#2b74d8; --danger:#c54242; --warn:#b8860b; --ok:#2c8d2c; --line:#dde7f1; --chip:#eef4fb;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,Roboto,Inter,Segoe UI,Helvetica,Arial;background:var(--bg);color:var(--text);}
+header{position:sticky;top:0;z-index:10;background:rgba(15,18,22,.8);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);}
+[data-theme="light"] header{background:rgba(255,255,255,.8);}
+.bar{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:10px 16px;}
+.logo{font-weight:800;letter-spacing:.5px;font-size:18px}
+.nav{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto}
+.nav button,.icon-btn{background:transparent;color:var(--muted);border:1px solid var(--line);padding:8px 10px;border-radius:10px;cursor:pointer;font-weight:600;}
+.nav button.active{color:var(--text);border-color:var(--accent);background:rgba(77,163,255,.12)}
+main{max-width:1100px;margin:16px auto;padding:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;}
+.right{display:flex;justify-content:flex-end}
+.btn{background:var(--chip);color:var(--text);border:1px solid var(--line);padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:600;}
+.btn.ok{border-color:var(--ok);background:rgba(139,226,139,.12);color:var(--ok);}
+.muted{color:var(--muted);} .small{font-size:13px}
+.hidden{display:none}
+
+/* Console overlay */
+.console-overlay{position:fixed;bottom:0;left:0;right:0;max-height:45%;overflow:auto;background:rgba(0,0,0,.8);color:#e9f0f7;font:12px/1.4 monospace;padding:8px;z-index:99999;border-top:1px solid #243040;}
+.console-overlay .dbgClear{float:right;}
+.console-overlay .log-error{color:#ff6b6b;}
+.console-overlay .log-warn{color:#ffd166;}
+.console-overlay .log-log{color:#cfe6ff;}

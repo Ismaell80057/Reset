@@ -3,37 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'; object-src 'none'; base-uri 'self';">
 <title>RESET — Ismaël</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
-<style>
-:root{
-  --bg:#0f1216; --card:#171b21; --muted:#8da2b3; --text:#e9f0f7;
-  --accent:#4da3ff; --danger:#ff6b6b; --warn:#ffd166; --ok:#8be28b; --line:#243040; --chip:#223042;
-}
-[data-theme="light"]{
-  --bg:#f7fbff; --card:#ffffff; --muted:#5b6b78; --text:#0b1a2b;
-  --accent:#2b74d8; --danger:#c54242; --warn:#b8860b; --ok:#2c8d2c; --line:#dde7f1; --chip:#eef4fb;
-}
-*{box-sizing:border-box}
-html,body{height:100%}
-body{margin:0;font-family:-apple-system,BlinkMacSystemFont,Roboto,Inter,Segoe UI,Helvetica,Arial;background:var(--bg);color:var(--text);}
-header{position:sticky;top:0;z-index:10;background:rgba(15,18,22,.8);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);}
-[data-theme="light"] header{background:rgba(255,255,255,.8);}
-.bar{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:10px 16px;}
-.logo{font-weight:800;letter-spacing:.5px;font-size:18px}
-.nav{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto}
-.nav button,.icon-btn{background:transparent;color:var(--muted);border:1px solid var(--line);padding:8px 10px;border-radius:10px;cursor:pointer;font-weight:600;}
-.nav button.active{color:var(--text);border-color:var(--accent);background:rgba(77,163,255,.12)}
-main{max-width:1100px;margin:16px auto;padding:12px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;}
-.right{display:flex;justify-content:flex-end}
-.btn{background:var(--chip);color:var(--text);border:1px solid var(--line);padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:600;}
-.btn.ok{border-color:var(--ok);background:rgba(139,226,139,.12);color:var(--ok);}
-.muted{color:var(--muted);} .small{font-size:13px}
-.hidden{display:none}
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 <header>
@@ -60,32 +34,7 @@ main{max-width:1100px;margin:16px auto;padding:12px}
   <!-- contenu principal rendu côté client -->
 </main>
 
-<script>
-const today=()=>new Date().toISOString().slice(0,10);
-function esc(str){return String(str).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));}
-
-const state={theme:'dark'};
-function applyTheme(){document.documentElement.setAttribute('data-theme',state.theme);}
-function toggleTheme(){state.theme=state.theme==='light'?'dark':'light';applyTheme();}
-function doLogin(){
-  const u=document.getElementById('lu').value.trim();
-  const p=document.getElementById('lp').value;
-  if(u==='Ismael' && p==='Bymemu48.'){
-    document.getElementById('login').style.display='none';
-    document.getElementById('app').classList.remove('hidden');
-  }else{
-    document.getElementById('lockMsg').textContent='Identifiants incorrects.';
-  }
-}
-
-document.getElementById('loginBtn').addEventListener('click',doLogin);
-document.getElementById('themeBtn').addEventListener('click',toggleTheme);
-applyTheme();
-
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('./sw.js?v=5').catch(console.error);
-}
-</script>
+<script src="main.js" defer></script>
 <script src="console-overlay.js" defer></script>
 </body>
 </html>

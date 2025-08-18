@@ -3,16 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'; object-src 'none'; base-uri 'self';">
 <title>RESET — Debug & Self‑tests</title>
-<style>
-  body{font-family:-apple-system,Roboto,Inter,Segoe UI,Helvetica,Arial;background:#0f1216;color:#e9f0f7;margin:0;padding:16px}
-  .card{background:#171b21;border:1px solid #243040;border-radius:12px;padding:14px;margin-bottom:12px}
-  .row{display:flex;gap:8px;flex-wrap:wrap}
-  .btn{padding:8px 12px;border:1px solid #243040;background:#223042;border-radius:10px;color:#cfe6ff;font-weight:700;cursor:pointer}
-  .ok{color:#8be28b}.warn{color:#ffd166}.bad{color:#ff6b6b}
-  table{border-collapse:collapse;width:100%}th,td{border:1px solid #243040;padding:8px;text-align:left}
-  code{background:#0b1622;padding:2px 4px;border-radius:6px}
-</style>
+<link rel="stylesheet" href="debug.css">
 </head>
 <body>
 <h1>RESET — Debug & Self‑tests</h1>
@@ -26,7 +19,7 @@
     <tr><th>LocalStorage</th><td id="ls"></td></tr>
     <tr><th>Caches</th><td id="caches"></td></tr>
   </table>
-  <div class="row" style="margin-top:8px">
+  <div class="row mt8">
     <button class="btn" id="btnResetSW">Reset SW</button>
     <button class="btn" id="btnClearLS">Vider LocalStorage (clé RESET)</button>
   </div>
@@ -35,7 +28,7 @@
 <div class="card">
   <h2>Self‑tests (fonctionnels)</h2>
   <div id="out"></div>
-  <div class="row" style="margin-top:8px">
+  <div class="row mt8">
     <button class="btn" id="btnRunAll">Lancer tous les tests</button>
   </div>
 </div>
@@ -45,73 +38,6 @@
   <div id="log"></div>
 </div>
 
-<script>
-(function(){
-  const logEl=document.getElementById('log');
-  const orig={log:console.log,warn:console.warn,error:console.error};
-  ['log','warn','error'].forEach(k=>{
-    console[k]=(...args)=>{
-      orig[k](...args);
-      const d=document.createElement('div');
-      d.textContent='['+k.toUpperCase()+'] '+args.map(a=>typeof a==='object'?JSON.stringify(a):String(a)).join(' ');
-      d.className=k==='error'?'bad':(k==='warn'?'warn':'');
-      logEl.appendChild(d);
-    };
-  });
-})();
-function esc(str){return String(str).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));}
-function row(str,cls=''){const d=document.createElement('div');d.innerHTML=str;if(cls)d.className=cls;return d;}
-function ok(s){return `<span class="ok">✅ ${esc(s)}</span>`}
-function bad(s){return `<span class="bad">❌ ${esc(s)}</span>`}
-function warn(s){return `<span class="warn">⚠️ ${esc(s)}</span>`}
-
-document.getElementById('ua').textContent=navigator.userAgent;
-(async()=>{
-  try{const r=await fetch('manifest.webmanifest');document.getElementById('mani').innerHTML=r.ok?ok('manifest chargé'):bad('manifest introuvable');}
-  catch(e){document.getElementById('mani').innerHTML=bad('erreur de chargement');}
-})();
-(async()=>{
-  if('serviceWorker' in navigator){
-    const regs=await navigator.serviceWorker.getRegistrations();
-    document.getElementById('sw').innerHTML=regs.length?ok(regs.length+' SW enregistré(s)'):warn('aucun SW');
-  }else{
-    document.getElementById('sw').innerHTML=bad('non supporté');
-  }
-})();
-try{
-  const testKey='__rst__'+Math.random();
-  localStorage.setItem(testKey,'1');localStorage.removeItem(testKey);
-  const size=Object.keys(localStorage).reduce((n,k)=>n+(localStorage[k]?.length||0),0);
-  document.getElementById('ls').innerHTML=ok('ok ('+size+' chars stockés)');
-}catch(e){document.getElementById('ls').innerHTML=bad('indisponible: '+e);}
-(async()=>{
-  if(!('caches' in window)){document.getElementById('caches').innerHTML=warn('API Cache non dispo');return;}
-  const keys=await caches.keys();document.getElementById('caches').innerHTML=keys.length?ok(keys.join(', ')):warn('vide');
-})();
-
-document.getElementById('btnResetSW').addEventListener('click', resetSW);
-document.getElementById('btnClearLS').addEventListener('click', clearLS);
-document.getElementById('btnRunAll').addEventListener('click', runAll);
-
-async function resetSW(){
-  try{
-    if('serviceWorker' in navigator){
-      const regs=await navigator.serviceWorker.getRegistrations();
-      await Promise.all(regs.map(r=>r.unregister()));
-    }
-    if('caches' in window){
-      const keys=await caches.keys();
-      await Promise.all(keys.map(k=>caches.delete(k)));
-    }
-    alert('OK. Recharge maintenant la page principale.');
-  }catch(e){alert('Erreur lors du reset: '+e.message);}
-}
-function clearLS(){Object.keys(localStorage).filter(k=>k.toLowerCase().includes('reset')).forEach(k=>localStorage.removeItem(k));alert('LocalStorage RESET vidé.');}
-async function testLoginFlow(){const okLogin=typeof doLogin==='function'||typeof window.doLogin==='function';return okLogin?ok('méthode login présente (manuel)'):warn('méthode login non trouvée (ouvrir index.html)');}
-async function testHALT(){try{const r=await fetch('index.html');const tx=await r.text();const hasHALT=tx.includes('HALT')&&(tx.includes('hHungry')||tx.includes('HALT</h2>'));return hasHALT?ok('HALT présent dans index.html'):bad('HALT introuvable');}catch(e){return bad('lecture index.html impossible');}}
-async function testExportImport(){try{const blob=new Blob([JSON.stringify({test:true})],{type:'application/json'});return ok('Export JSON possible (simulé)');}catch(e){return bad('Blob JSON non supporté');}}
-async function testSW(){if(!('serviceWorker' in navigator))return warn('SW non supporté');try{const regs=await navigator.serviceWorker.getRegistrations();return regs.length?ok('SW enregistré'):warn('aucun SW');}catch(e){return bad('erreur SW');}}
-async function runAll(){const out=document.getElementById('out');out.innerHTML='';out.appendChild(row('1) Login: '+await testLoginFlow()));out.appendChild(row('2) HALT: '+await testHALT()));out.appendChild(row('3) Export/Import: '+await testExportImport()));out.appendChild(row('4) Service Worker: '+await testSW()));out.appendChild(row('— Termine en vérifiant manuellement Journal/Habitudes/Tâches.','muted'));}
-</script>
+<script src="debug.js" defer></script>
 </body>
 </html>
